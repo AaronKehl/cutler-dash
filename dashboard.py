@@ -46,7 +46,7 @@ def populate_page():
 
 if __name__ == "__main__":
     if not st.user.is_logged_in:
-        if st.button("Log in with Google"):
+        if st.button("Log in with Google", width='stretch'):
             st.login("google")
         st.stop()
 

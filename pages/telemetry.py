@@ -83,7 +83,7 @@ def plot_chart( data, plot_var_1="", plot_var_2="" , open_date="", close_date=""
                 )
             ],
             layout=go.Layout(
-                xaxis=dict( title=f"Datetime [{x_units}]" ),
+                xaxis=dict( title=f"Datetime [UTC]" ),
                 yaxis=dict( title=f"{plot_var} [{y_units}]"),
                 margin=dict( t=0,b=0,l=0,r=0)
             )
@@ -138,7 +138,7 @@ def plot_chart( data, plot_var_1="", plot_var_2="" , open_date="", close_date=""
             )
         )
         fig.update_layout(
-                xaxis=dict( title=f"Datetime [{x_units}]" ),
+                xaxis=dict( title=f"Datetime [UTC]" ),
                 yaxis=dict( title=f"{plot_var_1} [{y1_units}]"),
                 yaxis2=dict( title=f"{plot_var_2} [{y2_units}]",anchor="x",overlaying="y",side="right",tickmode='sync'),
                 margin=dict( t=0,b=0,l=0,r=0),
@@ -175,7 +175,7 @@ def populate_page( params ):
 
 if __name__ == "__main__":
     if not st.user.is_logged_in:
-        if st.button("Log in with Google"):
+        if st.button("Log in with Google", width='stretch'):
             st.login("google")
         st.stop()
 
