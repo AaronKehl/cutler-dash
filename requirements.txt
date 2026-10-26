@@ -1,0 +1,9 @@
+streamlit[charts,auth]
+boto3
+opencv-python-headless
+matplotlib
+numpy
+pandas
+plotly
+rioxarray
+rasterio
