@@ -189,6 +189,14 @@ if __name__ == "__main__":
             st.login("google")
         st.stop()
 
+    user_email = st.user.get("email")
+    ALLOWED_USERS = st.secrets.get("users",{}).get("google",{}).get("allowed_users",[])
+    if user_email not in ALLOWED_USERS:
+        st.error(f"⛔ Access Denied. '{user_email}' is not on the user allowlist.")
+        if st.button("Log out and switch account"):
+            st.logout()
+        st.stop()
+        
     params = st.query_params
     site_name = params["site"][0:1].upper() + params["site"][1:]
 

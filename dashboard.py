@@ -50,6 +50,14 @@ if __name__ == "__main__":
             st.login("google")
         st.stop()
 
+    user_email = st.user.get("email")
+    ALLOWED_USERS = st.secrets.get("users",{}).get("google",{}).get("allowed_users",[])
+    if user_email not in ALLOWED_USERS:
+        st.error(f"⛔ Access Denied. '{user_email}' is not on the user allowlist.")
+        if st.button("Log out and switch account"):
+            st.logout()
+        st.stop()
+
     st.set_page_config( page_title="dashboard", page_icon="⚓" )
     st.write("# FlexiVue Dashboard ⚓")
 
