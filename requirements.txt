@@ -7,3 +7,5 @@ pandas
 plotly
 rioxarray
 rasterio
+google-api-python-client
+google-auth

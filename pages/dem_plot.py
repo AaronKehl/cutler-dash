@@ -6,6 +6,8 @@ import rasterio
 import rasterio.fill
 import xarray as xr
 from datetime import datetime
+from google.oauth2 import service_account
+from googleapiclient import discovery
 
 default_chart_spec = {
     "units":"[]",
@@ -197,6 +199,48 @@ def populate_page( params ):
         plot_sd_dem_bare.clear(); plot_sd_dem_minmax.clear()
         plot_reg_dem_bare.clear(); plot_reg_dem_minmax.clear()
 
+@st.cache_data(ttl=600)  # Cache IAM lookups for 10 minutes to maintain speed
+def check_user_iam_permission(email_to_check: str) -> bool:
+    """
+    Queries the GCP IAM API via a Service Account to see if the user has 
+    access to the project.
+    """
+    try:
+        # Load the service account credentials from st.secrets
+        gcp_info = dict(st.secrets["gcp_service_account"])
+        credentials = service_account.Credentials.from_service_account_info(gcp_info)
+        
+        # Build the Cloud Resource Manager API service
+        service = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)
+        project_id = gcp_info["project_id"]
+        
+        # Fetch the complete IAM Policy map for the project
+        policy = service.projects().getIamPolicy(resource=project_id, body={}).execute()
+        bindings = policy.get('bindings', [])
+        
+        # Format the identity string Google IAM expects
+        target_member = f"user:{email_to_check.lower()}"
+        
+        # Define what role grants access (e.g., any Project Viewer or higher)
+        # You can change this to any specific role you want to enforce
+        REQUIRED_ROLE = [
+            "roles/owner",
+            "roles/viewer",
+            "rolex/editor",
+            "roles/oauthconfig.viewer"
+        ]
+        
+        for binding in bindings:
+            if binding.get('role') in REQUIRED_ROLE:
+                members = [m.lower() for m in binding.get('members', [])]
+                if target_member in members:
+                    return True
+                    
+        return False
+    except Exception as e:
+        st.error(f"Authorization Engine Error: Unable to query IAM system.")
+        return False
+    
 if __name__ == "__main__":
     if not st.user.is_logged_in:
         if st.button("Log in with Google", width='stretch'):
@@ -204,10 +248,9 @@ if __name__ == "__main__":
         st.stop()
 
     user_email = st.user.get("email")
-    ALLOWED_USERS = st.secrets.get("users",{}).get("google",{}).get("allowed_users",[])
-    if user_email not in ALLOWED_USERS:
-        st.error(f"⛔ Access Denied. '{user_email}' is not on the user allowlist.")
-        if st.button("Log out and switch account"):
+    if not check_user_iam_permission(user_email):
+        st.error(f"⛔ Access Denied. The identity '{user_email}' does not possess the required IAM roles in Google Cloud.")
+        if st.button("Log out and/or switch account"):
             st.logout()
         st.stop()
         
