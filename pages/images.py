@@ -72,29 +72,6 @@ def read_idrive( open_date="", close_date="", key_prefix="idrive", bucket="flexi
         tile.image( image_file, width="stretch" )
         index += 1
 
-def populate_page( params ):
-    link_left, link_midl, link_midr, link_right = st.columns( 4 )
-    link_left.page_link( "dashboard.py", label="Dashboard" )
-    link_midl.page_link( "pages/telemetry.py" , label="Telemetry", query_params=params )
-    link_midr.page_link( "pages/levels.py", label="Z Level", query_params=params )
-    link_right.page_link( "pages/dems.py", label="DEMs", query_params=params)
-
-    bot_left, bot_middle, bot_right = st.columns( 3, vertical_alignment = "bottom" )
-    default_open = datetime.now() - timedelta( days = 7 )
-    open_date = bot_left.date_input( "Begin Date", value = default_open )
-    close_date = bot_middle.date_input( "End Date", value = "today" )
-
-    if bot_right.button( "Show Images", use_container_width=True ):
-        read_idrive( 
-            open_date, 
-            close_date, 
-            params["key_prefix"], 
-            params["bucket"], 
-            params["owner"], 
-            params["site"], 
-            params["dtype"] 
-        )
-
 @st.cache_data(ttl=600)  # Cache IAM lookups for 10 minutes to maintain speed
 def check_user_iam_permission(email_to_check: str) -> bool:
     """
@@ -156,7 +133,27 @@ if __name__ == "__main__":
     st.set_page_config( page_title=site_name, page_icon="📸" )
     st.write("# " + site_name + " FlexiVue Images 📸")
 
-    populate_page( params )
+    link_left, link_midl, link_midr, link_right = st.columns( 4 )
+    link_left.page_link( "dashboard.py", label="Dashboard" )
+    link_midl.page_link( "pages/telemetry.py" , label="Telemetry", query_params=params )
+    link_midr.page_link( "pages/levels.py", label="Z Level", query_params=params )
+    link_right.page_link( "pages/dems.py", label="DEMs", query_params=params)
+
+    bot_left, bot_middle, bot_right = st.columns( 3, vertical_alignment = "bottom" )
+    default_open = datetime.now() - timedelta( days = 7 )
+    open_date = bot_left.date_input( "Begin Date", value = default_open )
+    close_date = bot_middle.date_input( "End Date", value = "today" )
+
+    if bot_right.button( "Show Images", use_container_width=True ):
+        read_idrive( 
+            open_date, 
+            close_date, 
+            params["key_prefix"], 
+            params["bucket"], 
+            params["owner"], 
+            params["site"], 
+            params["dtype"] 
+        )
 
     if st.button("Log out"):
         st.logout()

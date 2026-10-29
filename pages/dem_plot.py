@@ -15,8 +15,8 @@ default_chart_spec = {
     "ylabel":"Y",
     "interp_val":6,
     "smooth_val":0,
-    "zmin":-0.2,
-    "zmax":6.0,
+    "zmin":-0.1,
+    "zmax":0.1,
     "cmap":"rainbow_r"
 }
 
@@ -163,42 +163,6 @@ def plot_sd_dem_minmax():
     fig = plot_chart( tif_filename, color_label )
     st.plotly_chart( fig )
 
-def populate_page( params ):
-    link_left, link_midl, link_midr, link_right = st.columns(4)
-    link_left.page_link( "pages/dems.py", label="Back", query_params=params )
-
-    # Radio buttons for which type we want to view...
-    #rad_left, rad_right = st.columns( 2 )
-    tif_color = st.radio( " ", 
-        [   "Show Colored by Reference to Bare Earth",
-            "Show Colored by Min/Max of Individual Scan"],
-        label_visibility="collapsed",
-        horizontal=True
-    )
-
-    rad_left, btn_right = st.columns( 2 )
-    tif_type = rad_left.radio( 
-        " ", 
-        ["Snowdepth DEM", "Regular DEM"], 
-        label_visibility="collapsed", 
-        horizontal=True 
-    )
-    tif_plot = btn_right.button( "Clear Cache", width="stretch" )
-    
-    if tif_type == "Regular DEM":
-        if tif_color == "Show Colored by Min/Max of Individual Scan":
-            plot_reg_dem_minmax()
-        else: plot_reg_dem_bare()
-
-    if tif_type == "Snowdepth DEM":
-        if tif_color == "Show Colored by Min/Max of Individual Scan":
-            plot_sd_dem_minmax()
-        else: plot_sd_dem_bare()
-
-    if tif_plot: 
-        plot_sd_dem_bare.clear(); plot_sd_dem_minmax.clear()
-        plot_reg_dem_bare.clear(); plot_reg_dem_minmax.clear()
-
 @st.cache_data(ttl=600)  # Cache IAM lookups for 10 minutes to maintain speed
 def check_user_iam_permission(email_to_check: str) -> bool:
     """
@@ -261,7 +225,40 @@ if __name__ == "__main__":
     st.set_page_config( page_title=site_name, page_icon="🏔" )
     st.write("# " + site_name + " FlexiVue DEM Plot 🏔")
 
-    populate_page( params )
+    link_left, link_midl, link_midr, link_right = st.columns(4)
+    link_left.page_link( "pages/dems.py", label="Back", query_params=params )
+
+    # Radio buttons for which type we want to view...
+    #rad_left, rad_right = st.columns( 2 )
+    tif_color = st.radio( " ", 
+        [   "Show Colored by Reference to Bare Earth",
+            "Show Colored by Min/Max of Individual Scan"],
+        label_visibility="collapsed",
+        horizontal=True
+    )
+
+    rad_left, btn_right = st.columns( 2 )
+    tif_type = rad_left.radio( 
+        " ", 
+        ["Snowdepth DEM", "Regular DEM"], 
+        label_visibility="collapsed", 
+        horizontal=True 
+    )
+    tif_plot = btn_right.button( "Clear Cache", width="stretch" )
+    
+    if tif_type == "Regular DEM":
+        if tif_color == "Show Colored by Min/Max of Individual Scan":
+            plot_reg_dem_minmax()
+        else: plot_reg_dem_bare()
+
+    if tif_type == "Snowdepth DEM":
+        if tif_color == "Show Colored by Min/Max of Individual Scan":
+            plot_sd_dem_minmax()
+        else: plot_sd_dem_bare()
+
+    if tif_plot: 
+        plot_sd_dem_bare.clear(); plot_sd_dem_minmax.clear()
+        plot_reg_dem_bare.clear(); plot_reg_dem_minmax.clear()
 
     if st.button("Log out"):
         st.logout()

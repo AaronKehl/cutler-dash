@@ -153,38 +153,6 @@ def plot_chart( data, plot_var_1="", plot_var_2="" , open_date="", close_date=""
         
         st.plotly_chart(fig, config=default_config, height=500, width="stretch" )
 
-def populate_page( params ):
-    link_left, link_midl, link_midr, link_right = st.columns(4)
-    link_left.page_link( "dashboard.py", label="Dashboard" )
-    link_midl.page_link( "pages/telemetry.py", label="Telemetry", query_params=params )
-    link_midr.page_link( "pages/images.py", label="Images", query_params=params )
-    link_right.page_link( "pages/dems.py", label="DEMs", query_params=params)
-
-    if params["dtype"] != "":
-        # Grab z Level data from master file.
-        data = read_idrive( params["key_prefix"], params["bucket"], params["owner"], params["site"], params["dtype"] )
-        csvfile = io.StringIO( data )
-        reader = csv.DictReader( csvfile, delimiter="," )
-        var_names = reader.fieldnames
-
-        # Set up options for graphing variables contained in the levels file by open/close dates
-        top_left, top_right = st.columns( 2 )
-        plot_var_1 = top_left.selectbox( "Select Variable 1", [""] + var_names )
-        plot_var_2 = top_right.selectbox( "Select Variable 2", [""] + var_names )
-        bot_left, bot_middle, bot_right = st.columns( 3, vertical_alignment = "bottom" )
-        default_open = datetime.now() - timedelta( days = 7 )
-        open_date = bot_left.date_input( "Begin Date", value = default_open )
-        close_date = bot_middle.date_input( "End Date", value = "today" )
-        if bot_right.button( "Plot Chart", use_container_width=True):
-            plot_chart( data, plot_var_1, plot_var_2, open_date, close_date )
-
-        # populate an image/description for the level page for a specific site
-        st.image( "img/"+params["owner"]+"-"+params["site"]+"-"+params["dtype"]+".png", caption="Depiction of where level is determined." )
-    else:
-        st.write("## No additional telemetry file exists for this site, main telemetry file only." )
-        
-    #st.write( "You selected:", var_names )
-
 @st.cache_data(ttl=600)  # Cache IAM lookups for 10 minutes to maintain speed
 def check_user_iam_permission(email_to_check: str) -> bool:
     """
@@ -247,7 +215,36 @@ if __name__ == "__main__":
     st.set_page_config( page_title=site_name, page_icon="📈" )
     st.write("# " + site_name + " FlexiVue Z Level 📈")
 
-    populate_page( params )
+    link_left, link_midl, link_midr, link_right = st.columns(4)
+    link_left.page_link( "dashboard.py", label="Dashboard" )
+    link_midl.page_link( "pages/telemetry.py", label="Telemetry", query_params=params )
+    link_midr.page_link( "pages/images.py", label="Images", query_params=params )
+    link_right.page_link( "pages/dems.py", label="DEMs", query_params=params)
+
+    if params["dtype"] != "":
+        # Grab z Level data from master file.
+        data = read_idrive( params["key_prefix"], params["bucket"], params["owner"], params["site"], params["dtype"] )
+        csvfile = io.StringIO( data )
+        reader = csv.DictReader( csvfile, delimiter="," )
+        var_names = reader.fieldnames
+
+        # Set up options for graphing variables contained in the levels file by open/close dates
+        top_left, top_right = st.columns( 2 )
+        plot_var_1 = top_left.selectbox( "Select Variable 1", [""] + var_names )
+        plot_var_2 = top_right.selectbox( "Select Variable 2", [""] + var_names )
+        bot_left, bot_middle, bot_right = st.columns( 3, vertical_alignment = "bottom" )
+        default_open = datetime.now() - timedelta( days = 7 )
+        open_date = bot_left.date_input( "Begin Date", value = default_open )
+        close_date = bot_middle.date_input( "End Date", value = "today" )
+        if bot_right.button( "Plot Chart", use_container_width=True):
+            plot_chart( data, plot_var_1, plot_var_2, open_date, close_date )
+
+        # populate an image/description for the level page for a specific site
+        st.image( "img/"+params["owner"]+"-"+params["site"]+"-"+params["dtype"]+".png", caption="Depiction of where level is determined." )
+    else:
+        st.write("## No additional telemetry file exists for this site, main telemetry file only." )
+        
+    #st.write( "You selected:", var_names )
 
     if st.button("Log out"):
         st.logout()
